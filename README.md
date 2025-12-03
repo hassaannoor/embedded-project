@@ -2,6 +2,8 @@
 
 A Flappy Bird clone for Arduino Uno where the bird's vertical position is controlled by the pitch of your voice (or an audio signal), outputting video to a VGA monitor.
 
+<img width="1536" height="1024" alt="flappy-arduino-github-banner" src="https://github.com/user-attachments/assets/f370a14a-9016-4acd-a42c-833fd8a8b7c5" />
+
 ## Hardware Requirements
 
 - **Arduino Uno** (ATmega328P @ 16MHz)
