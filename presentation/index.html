@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Sketch: Pitch-Controlled VGA Game</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #121826;
+    --accent-green: #00ff41;
+    --accent-cyan: #00d9ff;
+    --accent-red: #ff0055;
+    --accent-yellow: #ffeb3b;
+    --text-primary: #e0e6ed;
+    --text-dim: #7a8a99;
+    --grid-color: rgba(0, 255, 65, 0.15);
+  }
+
+  body {
+    font-family: 'Space Mono', monospace;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      repeating-linear-gradient(0deg, transparent, transparent 2px, var(--grid-color) 2px, var(--grid-color) 3px),
+      repeating-linear-gradient(90deg, transparent, transparent 2px, var(--grid-color) 2px, var(--grid-color) 3px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    opacity: 0.3;
+    z-index: 0;
+  }
+
+  .slides-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .slide {
+    min-height: 100vh;
+    padding: 4rem 6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    border-bottom: 3px solid var(--accent-green);
+  }
+
+  .slide::before {
+    content: attr(data-slide);
+    position: absolute;
+    top: 2rem;
+    right: 6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.875rem;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+
+  /* Title Slide */
+  .slide-title {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1f35 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide-title::after {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0, 255, 65, 0.1) 0%, transparent 70%);
+    top: -200px;
+    right: -200px;
+    animation: pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+  }
+
+  h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 4.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    color: var(--accent-green);
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    position: relative;
+  }
+
+  .subtitle {
+    font-size: 1.75rem;
+    color: var(--accent-cyan);
+    margin-bottom: 3rem;
+    font-weight: 400;
+    border-left: 4px solid var(--accent-cyan);
+    padding-left: 1.5rem;
+  }
+
+  .team {
+    font-size: 1.25rem;
+    color: var(--text-dim);
+    margin-top: 2rem;
+  }
+
+  .team span {
+    display: block;
+    margin: 0.5rem 0;
+    padding-left: 2rem;
+    position: relative;
+  }
+
+  .team span::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--accent-green);
+  }
+
+  .visual-placeholder {
+    margin-top: 3rem;
+    padding: 3rem;
+    border: 2px dashed var(--accent-cyan);
+    background: rgba(0, 217, 255, 0.05);
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 1rem;
+    position: relative;
+  }
+
+  .visual-placeholder::before {
+    content: '[VISUAL]';
+    display: block;
+    color: var(--accent-cyan);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* Section Titles */
+  h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    color: var(--accent-green);
+    text-transform: uppercase;
+    position: relative;
+    display: inline-block;
+  }
+
+  h2::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-green), transparent);
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    color: var(--accent-cyan);
+    margin: 2rem 0 1rem 0;
+    font-weight: 700;
+  }
+
+  .content-block {
+    background: var(--bg-secondary);
+    padding: 2rem;
+    margin: 1.5rem 0;
+    border-left: 4px solid var(--accent-cyan);
+    position: relative;
+  }
+
+  .content-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 20px var(--accent-cyan);
+  }
+
+  ul {
+    list-style: none;
+    margin: 1rem 0;
+  }
+
+  li {
+    padding: 0.75rem 0;
+    padding-left: 2rem;
+    position: relative;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+
+  li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent-green);
+    font-weight: 700;
+  }
+
+  .highlight {
+    color: var(--accent-yellow);
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .code-inline {
+    background: rgba(0, 255, 65, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-green);
+    font-size: 0.9em;
+  }
+
+  .constraint-box {
+    background: rgba(255, 0, 85, 0.1);
+    border: 2px solid var(--accent-red);
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    position: relative;
+  }
+
+  .constraint-box::before {
+    content: '⚠ CONSTRAINT';
+    position: absolute;
+    top: -0.75rem;
+    left: 1rem;
+    background: var(--bg-primary);
+    padding: 0 0.5rem;
+    color: var(--accent-red);
+    font-weight: 700;
+    font-size: 0.875rem;
+  }
+
+  .split-visual {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+  }
+
+  .split-visual .visual-placeholder {
+    margin: 0;
+  }
+
+  .diagram-placeholder {
+    margin: 2rem 0;
+    padding: 4rem 2rem;
+    border: 2px solid var(--accent-green);
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.05) 0%, transparent 100%);
+    text-align: center;
+    position: relative;
+  }
+
+  .diagram-placeholder::before {
+    content: '[DIAGRAM]';
+    display: block;
+    color: var(--accent-green);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+  }
+
+  .state-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .state {
+    padding: 1rem 2rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-cyan);
+    color: var(--accent-cyan);
+    font-weight: 700;
+  }
+
+  .arrow {
+    color: var(--accent-green);
+    font-size: 2rem;
+  }
+
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+  }
+
+  .comparison-item {
+    padding: 2rem;
+    border: 2px solid;
+    position: relative;
+  }
+
+  .comparison-item.good {
+    border-color: var(--accent-green);
+    background: rgba(0, 255, 65, 0.05);
+  }
+
+  .comparison-item.bad {
+    border-color: var(--accent-red);
+    background: rgba(255, 0, 85, 0.05);
+  }
+
+  .comparison-item h4 {
+    color: inherit;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+
+  .timeline {
+    position: relative;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .timeline-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-left: 3px solid var(--accent-cyan);
+  }
+
+  .timeline-label {
+    font-weight: 700;
+    color: var(--accent-cyan);
+    min-width: 150px;
+  }
+
+  .timeline-bar {
+    flex: 1;
+    height: 40px;
+    background: rgba(0, 255, 65, 0.2);
+    position: relative;
+  }
+
+  .critical-section {
+    position: absolute;
+    height: 100%;
+    background: var(--accent-red);
+    opacity: 0.7;
+  }
+
+  .conclusion-slide {
+    background: linear-gradient(135deg, #1a1f35 0%, var(--bg-primary) 100%);
+  }
+
+  .demo-callout {
+    margin-top: 3rem;
+    padding: 2rem;
+    border: 3px solid var(--accent-yellow);
+    background: rgba(255, 235, 59, 0.1);
+    text-align: center;
+  }
+
+  .demo-callout h3 {
+    color: var(--accent-yellow);
+    font-size: 2rem;
+    margin: 0;
+  }
+
+  @media print {
+    .slide {
+      page-break-after: always;
+      min-height: 100vh;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .slide {
+      padding: 2rem;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+    }
+    
+    h2 {
+      font-size: 2rem;
+    }
+    
+    .split-visual,
+    .comparison-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="slides-container">
+    
+    <!-- Slide 1: Title -->
+    <section class="slide slide-title" data-slide="01/10">
+      <h1>Flappy Sketch</h1>
+      <div class="subtitle">Pitch-Controlled VGA Game: Applying Software Construction Principles to Bare Metal</div>
+      
+      <div class="team">
+        <span>Farooq Shafi</span>
+        <span>Muhammad Hassaan Noor</span>
+        <span>Hassan Abbas</span>
+      </div>
+
+      <div class="visual-placeholder">
+        High-quality photo of breadboard setup connected to VGA monitor displaying the game
+      </div>
+    </section>
+
+    <!-- Slide 2: Introduction -->
+    <section class="slide" data-slide="02/10">
+      <h2>The "Hardware" Difference</h2>
+      
+      <div class="content-block">
+        <h3>The Concept</h3>
+        <p>A Flappy Bird clone where <span class="highlight">voice pitch controls height</span>. No buttons, just physics and sound.</p>
+      </div>
+
+      <div class="content-block">
+        <h3>The Unique Challenge</h3>
+        <ul>
+          <li>Unlike pure software, we have <span class="highlight">Real-Time Hard Deadlines</span></li>
+          <li><span class="code-inline">VGA</span>: Requires microsecond-perfect timing (31.25 kHz)</li>
+          <li><span class="code-inline">Audio</span>: Sampling at 125 kHz simultaneously</li>
+        </ul>
+      </div>
+
+      <div class="constraint-box">
+        All running on a single-threaded 8-bit Arduino Uno with <span class="highlight">Shared Memory Concurrency</span>
+      </div>
+
+      <div class="split-visual">
+        <div class="visual-placeholder">
+          Pinout diagram highlighting VGA vs. Audio pins showing resource contention
+        </div>
+        <div class="visual-placeholder">
+          Split-screen comparison: "Standard Software App (GBs of RAM)" vs. "Our Project (2 KB RAM)"
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 3: Design & Modelling -->
+    <section class="slide" data-slide="03/10">
+      <h2>Design & Modelling</h2>
+      <h3>Hiding the Hardware</h3>
+      
+      <div class="content-block">
+        <p><strong>Goal:</strong> Create a clean <span class="highlight">Abstract Data Type (ADT)</span> for the game, ignoring the messy hardware underneath.</p>
+        
+        <h3 style="margin-top: 2rem;">Challenge: Hidden Assumptions</h3>
+        <ul>
+          <li><strong>Example:</strong> We assumed the ADC (microphone) is always ready</li>
+          <li><strong>Reality:</strong> It needs calibration</li>
+        </ul>
+      </div>
+
+      <div class="content-block">
+        <h3>The Fix: State Machine Modelling</h3>
+        <p>We explicitly modelled states:</p>
+        
+        <div class="state-flow">
+          <div class="state">Warmup</div>
+          <div class="arrow">→</div>
+          <div class="state">Calibration</div>
+          <div class="arrow">→</div>
+          <div class="state">GameLoop</div>
+        </div>
+      </div>
+
+      <div class="diagram-placeholder">
+        Finite State Machine (FSM) Diagram showing transitions. Use distinct colors for "Safe States" vs. "Error States"
+      </div>
+    </section>
+
+    <!-- Slide 4: Specifications -->
+    <section class="slide" data-slide="04/10">
+      <h2>Specifications</h2>
+      <h3>The Contract of "Noise"</h3>
+      
+      <div class="content-block">
+        <p><strong>Topic:</strong> Preconditions and Postconditions</p>
+        <p><strong>The Problem:</strong> How do you specify "human voice"?</p>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="comparison-item bad">
+          <h4>Strong Precondition</h4>
+          <p>"Input must be a pure Sine Wave."</p>
+          <ul>
+            <li>Easier to code</li>
+            <li>Impossible for users</li>
+          </ul>
+        </div>
+        
+        <div class="comparison-item good">
+          <h4>Weak Precondition</h4>
+          <p>"Input can be any noisy signal."</p>
+          <ul>
+            <li>Harder to code</li>
+            <li>Robust for users</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="content-block">
+        <h3>Our Choice</h3>
+        <p>Weakened the precondition to accept noise but enforced a <span class="highlight">Postcondition</span> that the output is a stabilized frequency or a specific error code.</p>
+      </div>
+
+      <div class="visual-placeholder">
+        Waveform comparison: noisy audio signal alongside a "clean" square wave, illustrating function's input vs. output
+      </div>
+    </section>
+
+    <!-- Slide 5: Mutability -->
+    <section class="slide" data-slide="05/10">
+      <h2>Mutability</h2>
+      <h3>The Screen Tearing War</h3>
+      
+      <div class="content-block">
+        <p><strong>Topic:</strong> Mutability & Aliasing</p>
+        
+        <div class="constraint-box">
+          <strong>The Invariant:</strong> The screen buffer <span class="code-inline">PXL_DATA</span> must not change while it is being drawn to the monitor.
+        </div>
+      </div>
+
+      <div class="content-block">
+        <h3>The Violation:</h3>
+        <ul>
+          <li>The <span class="highlight">Game Logic (Main Loop)</span> tries to move the bird</li>
+          <li>The <span class="highlight">VGA Driver (Interrupt)</span> tries to draw the bird</li>
+          <li><strong>Result:</strong> "Screen Tearing" or "Ghosting"</li>
+        </ul>
+      </div>
+
+      <div class="content-block">
+        <h3>Solution: Confined Mutation</h3>
+        <p>Only the VGA module can touch the pixel array; the Game Logic sends commands via a strict API.</p>
+      </div>
+
+      <div class="diagram-placeholder">
+        Animation or diagram showing "Scanline Racing": A red line (the renderer) chasing a blue line (the game update) down the screen
+      </div>
+    </section>
+
+    <!-- Slide 6: Recursion -->
+    <section class="slide" data-slide="06/10">
+      <h2>Recursion</h2>
+      <h3>Why We Avoided It</h3>
+      
+      <div class="content-block">
+        <p><strong>Topic:</strong> Recursive Data Types & Safety</p>
+        
+        <div class="constraint-box">
+          We have 2 KB of RAM. Stack overflow = System Crash.
+        </div>
+      </div>
+
+      <div class="content-block">
+        <h3>Analysis:</h3>
+        <ul>
+          <li>Signal processing often uses recursion (Divide & Conquer FFT)</li>
+          <li><strong>Bad Recursion:</strong> Overlapping subproblems (calculating the same frequency window twice) leads to O(2<sup>n</sup>) time</li>
+        </ul>
+      </div>
+
+      <div class="content-block">
+        <h3>Our Approach</h3>
+        <p>We replaced recursion with <span class="highlight">Iterative Loops</span> for the audio pipeline to guarantee O(n) performance and constant stack usage.</p>
+      </div>
+
+      <div class="visual-placeholder">
+        Stack Usage Graph: One bar showing "Recursive Approach" hitting the ceiling (Crash), and a flat line showing "Iterative Approach" (Safe)
+      </div>
+    </section>
+
+    <!-- Slide 7: Concurrency -->
+    <section class="slide" data-slide="07/10">
+      <h2>Concurrency</h2>
+      <h3>The Race for 16 Bits</h3>
+      
+      <div class="content-block">
+        <p><strong>Topic:</strong> Race Conditions & Shared Memory</p>
+        
+        <h3 style="margin-top: 1.5rem;">The Bug:</h3>
+        <p>The <span class="code-inline">detectedFreq</span> variable is 16-bits. The processor is 8-bit.</p>
+        
+        <ul style="margin-top: 1rem;">
+          <li><strong>Scenario:</strong> The Audio Interrupt updates the Low Byte</li>
+          <li><strong>Interrupt:</strong> The Main Loop reads the value before the High Byte is updated</li>
+          <li><strong>Result:</strong> The bird teleports randomly (Data Corruption)</li>
+        </ul>
+      </div>
+
+      <div class="content-block">
+        <h3>The Fix: Atomic Blocks</h3>
+        <p>We disable interrupts <span class="code-inline">cli()</span> for the 2 microseconds it takes to read the variable.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-row">
+          <div class="timeline-label">Main Thread</div>
+          <div class="timeline-bar">
+            <div class="critical-section" style="left: 30%; width: 20%;"></div>
+          </div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Interrupt</div>
+          <div class="timeline-bar">
+            <div class="critical-section" style="left: 25%; width: 30%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="visual-placeholder">
+        Timeline Strip: Two rows labeled "Main Thread" and "Interrupt". Highlight the "Critical Section" in red where they overlap on the shared variable
+      </div>
+    </section>
+
+    <!-- Slide 8: Debugging -->
+    <section class="slide" data-slide="08/10">
+      <h2>Debugging</h2>
+      <h3>Hunting Heisenbugs</h3>
+      
+      <div class="content-block">
+        <p><strong>Topic:</strong> Systematic Debugging</p>
+        <p><strong>Challenge:</strong> You can't pause a VGA signal to debug it (the monitor just goes black).</p>
+      </div>
+
+      <div class="content-block">
+        <h3>Method: Binary Search Debugging</h3>
+        <ul>
+          <li>Disable Audio. Does VGA work? (Yes → Bug is in Audio)</li>
+          <li>Disable Game Logic. Does Audio work? (No → Bug is in Interrupt priority)</li>
+        </ul>
+      </div>
+
+      <div class="diagram-placeholder">
+        Flow chart showing the Isolation Process: "Symptom: Flicker" → "Isolate VGA" → "Isolate Audio" → "Found: Timer Conflict"
+      </div>
+    </section>
+
+    <!-- Slide 9: Testing -->
+    <section class="slide" data-slide="09/10">
+      <h2>Testing</h2>
+      <h3>You Can't Unit Test a Whistle</h3>
+      
+      <div class="content-block">
+        <p><strong>Topic:</strong> Black Box Testing & Partitioning</p>
+        <p><strong>Challenge:</strong> How do you write a JUnit test for a microphone?</p>
+      </div>
+
+      <div class="content-block">
+        <h3>Strategy: Input Space Partitioning</h3>
+        <ul>
+          <li><strong>Partition 1:</strong> Silence (Noise Floor)</li>
+          <li><strong>Partition 2:</strong> Valid Range (100 Hz - 1000 Hz)</li>
+          <li><strong>Partition 3:</strong> High Frequency Noise (Aliasing)</li>
+        </ul>
+      </div>
+
+      <div class="visual-placeholder">
+        Frequency Spectrum graph divided into colored zones (Ignore, Play, Error) representing the test partitions
+      </div>
+    </section>
+
+    <!-- Slide 10: Conclusion -->
+    <section class="slide conclusion-slide" data-slide="10/10">
+      <h2>Conclusion</h2>
+      
+      <div class="content-block">
+        <h3>Summary</h3>
+        <ul>
+          <li>We didn't just write code; we <span class="highlight">engineered a system</span></li>
+          <li>Software Construction principles saved us from the chaos of raw hardware</li>
+          <li>Forced interaction between high-level abstractions and physical constraints</li>
+        </ul>
+      </div>
+
+      <div class="demo-callout">
+        <h3>🎮 LIVE DEMO</h3>
+        <p style="margin-top: 1rem; color: var(--text-primary);">(or video demonstration)</p>
+      </div>
+
+      <div class="content-block" style="margin-top: 3rem; text-align: center; border-left: none; background: transparent;">
+        <h3 style="color: var(--accent-green); font-size: 2.5rem;">Q & A</h3>
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>
